@@ -238,20 +238,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         let text = `📚 Available Collections (${collections.length}):\n\n`;
 
-        for (const col of collections) {
+        for (const colName of collections) {
           try {
-            const collection = await chromaClient.getCollection({ name: col.name });
+            const collection = await chromaClient.getCollection({ name: colName });
             const count = await collection.count();
 
-            text += `📁 **${col.name}**\n`;
+            text += `📁 **${colName}**\n`;
             text += `   - Chunks: ${count}\n`;
-            if (col.metadata?.description) {
-              text += `   - Description: ${col.metadata.description}\n`;
-            }
             text += `\n`;
           } catch (colError) {
-            console.error(`Error getting collection ${col.name}:`, colError);
-            text += `📁 **${col.name}** (error reading details)\n\n`;
+            console.error(`Error getting collection ${colName}:`, colError);
+            text += `📁 **${colName}** (error reading details)\n\n`;
           }
         }
 

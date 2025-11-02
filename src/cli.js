@@ -72,16 +72,18 @@ program
 
       console.log(`\n📚 Collections (${collections.length}):\n`);
 
-      for (const col of collections) {
-        const collection = await client.getCollection({ name: col.name });
-        const count = await collection.count();
+      for (const colName of collections) {
+        try {
+          const collection = await client.getCollection({ name: colName });
+          const count = await collection.count();
 
-        console.log(`   📁 ${col.name}`);
-        console.log(`      Chunks: ${count}`);
-        if (col.metadata?.description) {
-          console.log(`      Description: ${col.metadata.description}`);
+          console.log(`   📁 ${colName}`);
+          console.log(`      Chunks: ${count}`);
+          console.log();
+        } catch (err) {
+          console.log(`   📁 ${colName} (error: ${err.message})`);
+          console.log();
         }
-        console.log();
       }
     } catch (error) {
       console.error(`\n❌ Error: ${error.message}\n`);
