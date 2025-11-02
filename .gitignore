@@ -1,0 +1,8 @@
+node_modules/
+chroma_db/
+*.pdf
+*.docx
+*.txt
+.env
+.DS_Store
+collections/

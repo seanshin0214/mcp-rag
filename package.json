@@ -1,0 +1,34 @@
+{
+  "name": "mcp-rag",
+  "version": "1.0.0",
+  "description": "Universal RAG MCP Server - Your Personal NotebookLM for Claude Desktop",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "mcp-rag": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "cli": "node src/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "chromadb": "^1.8.1",
+    "pdf-parse": "^1.1.1",
+    "tiktoken": "^1.0.15",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1"
+  },
+  "keywords": [
+    "mcp",
+    "rag",
+    "claude",
+    "chromadb",
+    "notebooklm",
+    "document-search",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT"
+}
