@@ -2,48 +2,66 @@
 
 **Your Personal NotebookLM for Claude Desktop**
 
-Universal RAG (Retrieval-Augmented Generation) MCP server that turns Claude Desktop into a powerful document question-answering system. Index any PDF documents and ask questions - Claude will answer based ONLY on your documents, with 0% hallucination.
+Universal RAG (Retrieval-Augmented Generation) MCP server for Claude Desktop. Index documents via CLI, search them in Claude Desktop with 0% hallucination.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![Python Version](https://img.shields.io/badge/python-%3E%3D3.8-blue)](https://python.org/)
+
+---
 
 ## What is MCP-RAG?
 
-Think of it as **NotebookLM, but for Claude Desktop**:
+Think of it as **NotebookLM for Claude Desktop**:
 
-- 📚 Upload any PDF documents (regulations, manuals, research papers, notes)
-- 🔍 Ask questions in natural language
-- ✅ Get answers based ONLY on your documents
-- 🚫 Zero hallucination - if it's not in your docs, Claude says so
-- 💻 100% local processing with ChromaDB vector search
+- 📚 **Index any documents**: PDF, Word, PowerPoint, Excel, 한글, TXT, MD
+- 🔍 **Natural language search**: Ask questions in Claude Desktop
+- ✅ **0% Hallucination**: Answers based ONLY on your documents
+- 💻 **100% Local**: All data stays on your computer (ChromaDB)
+- 🎯 **Simple workflow**: CLI for indexing → Claude Desktop for searching
 
-## Features
+---
 
-### 🎯 Core Features
+## Architecture
 
-- **Multi-Collection Support**: Organize documents by topic (school, work, research, etc.)
-- **Vector Search**: Semantic search powered by ChromaDB embeddings
-- **0% Hallucination**: Strict document-only responses
-- **Source Attribution**: Every answer includes source file and chunk location
-- **Multiple Formats**: PDF, TXT, Markdown support
+```
+┌─────────────────────┐
+│  Your Documents     │
+│  (PDF, DOCX, etc)   │
+└──────────┬──────────┘
+           │
+           ▼
+    [CLI: npm run cli add]
+           │
+           ▼
+┌─────────────────────┐
+│   ChromaDB Server   │ ◄─── Vector embeddings
+│   (localhost:8000)  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│   MCP-RAG Server    │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Claude Desktop     │ ◄─── You ask questions here!
+└─────────────────────┘
+```
 
-### 🔧 Technical Features
+**Two-Part System:**
+1. **CLI** = Document management (add, delete, list)
+2. **Claude Desktop** = Search and Q&A
 
-- **MCP Protocol**: Seamless Claude Desktop integration
-- **Token-based Chunking**: Smart 500-token chunks with 50-token overlap
-- **Relevance Scoring**: See how relevant each search result is
-- **CLI Management**: Easy command-line collection management
-- **Local-First**: All data stays on your computer
+---
 
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Install
 
-**Windows:**
 ```bash
-cd mcp-rag
-install.bat
-```
-
-**macOS/Linux:**
-```bash
+git clone https://github.com/seanshin0214/mcp-rag.git
 cd mcp-rag
 npm install
 pip install chromadb
@@ -51,258 +69,257 @@ pip install chromadb
 
 ### 2. Start ChromaDB Server
 
-Open a terminal and keep it running:
+**Keep this running in a separate terminal:**
 
 ```bash
 chroma run --host localhost --port 8000
 ```
 
-### 3. Add Your Documents
+### 3. Add Documents (CLI)
 
 ```bash
-# Add a document to a collection
-npm run cli add school regulations.pdf
-npm run cli add research "my-paper.pdf"
-npm run cli add work "employee-handbook.pdf"
+# Add single document
+npm run cli add school "path/to/regulations.pdf"
 
-# You can add multiple documents to the same collection
-npm run cli add school "student-guide.pdf"
+# Add multiple documents
+npm run cli add research "paper1.pdf"
+npm run cli add research "paper2.docx"
+npm run cli add work "handbook.pptx"
 ```
+
+**Supported formats:**
+- Documents: PDF, DOCX, HWP, TXT, MD
+- Presentations: PPTX
+- Spreadsheets: XLSX, XLS
 
 ### 4. Configure Claude Desktop
 
-**Windows:** Edit `%APPDATA%\Claude\claude_desktop_config.json`
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-**macOS:** Edit `~/Library/Application Support/Claude/claude_desktop_config.json`
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-Add this configuration:
+Add this:
 
 ```json
 {
   "mcpServers": {
     "mcp-rag": {
       "command": "node",
-      "args": [
-        "C:\\Users\\sshin\\Documents\\mcp-rag\\src\\index.js"
-      ]
+      "args": ["/absolute/path/to/mcp-rag/src/index.js"]
     }
   }
 }
 ```
 
-**Important:** Update the path to match your actual installation directory!
+**Important:** Use your actual installation path!
 
 ### 5. Restart Claude Desktop
 
-1. Completely quit Claude Desktop
-2. Verify ChromaDB is running
-3. Start Claude Desktop
-4. Check the hamburger menu for MCP server connection
-
-### 6. Start Asking Questions!
+### 6. Ask Questions!
 
 In Claude Desktop:
 
 ```
-"Search in the school collection for attendance policy"
+"What does the school collection say about attendance?"
 ```
 
 ```
-"What does my research collection say about methodology?"
+"Search the research collection for methodology"
 ```
 
 ```
-"Find information about vacation days in the work collection"
+"Show me all my collections"
 ```
 
-Claude will automatically use the MCP-RAG tools to search your documents!
+---
 
 ## CLI Commands
 
-### Add Documents
-
 ```bash
-# Add document to collection
-npm run cli add <collection> <file>
+# Add document
+npm run cli add <collection> <file> [-d "description"]
 
-# With description
-npm run cli add school regulations.pdf -d "School regulations 2024"
-```
-
-### List Collections
-
-```bash
+# List all collections
 npm run cli list
-```
 
-Output:
-```
-📚 Collections (3):
-
-   📁 school
-      Chunks: 127
-      Description: School regulations 2024
-
-   📁 research
-      Chunks: 89
-
-   📁 work
-      Chunks: 234
-```
-
-### Collection Info
-
-```bash
+# Get collection info
 npm run cli info <collection>
-```
 
-Example:
-```bash
-npm run cli info school
-```
+# Search test
+npm run cli search <collection> "query"
 
-Output:
-```
-📊 Collection: school
-
-   Total chunks: 127
-   Documents: 2
-
-   📄 Files:
-      - regulations.pdf
-      - student-guide.pdf
-```
-
-### Search (Test)
-
-```bash
-npm run cli search <collection> "<query>"
-```
-
-Example:
-```bash
-npm run cli search school "attendance policy"
-```
-
-### Delete Collection
-
-```bash
+# Delete collection
 npm run cli delete <collection>
 ```
 
-## Usage Patterns
+### Examples
 
-### Pattern 1: Search Specific Collection
+```bash
+# Add with description
+npm run cli add school "regulations.pdf" -d "School regulations 2024"
 
-In Claude Desktop:
-```
-"Search the school collection for graduation requirements"
-```
+# Add multiple files (PowerShell)
+Get-ChildItem "*.docx" | ForEach-Object {
+    npm run cli add MyCollection $_.FullName
+}
 
-Claude will use `search_documents` with `collection: "school"`
-
-### Pattern 2: Search All Collections
-
-```
-"Search all my documents for the term 'deadline'"
-```
-
-Claude will search across all collections and return the most relevant results.
-
-### Pattern 3: List What's Available
-
-```
-"What collections do I have?"
+# Check what's indexed
+npm run cli list
+npm run cli info school
 ```
 
-Claude will use `list_collections` to show all available document collections.
+---
 
-### Pattern 4: Collection Details
+## MCP Tools (Claude Desktop)
 
-```
-"Show me what's in the research collection"
-```
+When you ask questions in Claude Desktop, these tools are automatically used:
 
-Claude will use `get_collection_info` to show details.
+| Tool | Description |
+|------|-------------|
+| `search_documents` | Search in specific collection or all collections |
+| `list_collections` | List all available collections |
+| `get_collection_info` | Get details about a collection |
+
+**Note:** Document addition is CLI-only, not available in Claude Desktop.
+
+---
 
 ## How It Works
 
-### Indexing Flow
+### Indexing (CLI)
 
 ```
-PDF/TXT File
-    ↓
-Text Extraction
-    ↓
-Split into 500-token chunks (50-token overlap)
-    ↓
-Generate embeddings (ChromaDB)
-    ↓
-Store in collection
+1. Read file (PDF/DOCX/PPTX/etc)
+2. Extract text
+3. Split into 500-token chunks (50-token overlap)
+4. Generate embeddings (ChromaDB)
+5. Store in collection
 ```
 
-### Search Flow
+### Searching (Claude Desktop)
 
 ```
-User Question in Claude Desktop
-    ↓
-MCP-RAG receives search request
-    ↓
-ChromaDB vector similarity search
-    ↓
-Top 5 most relevant chunks
-    ↓
-Return to Claude with source attribution
-    ↓
-Claude answers using ONLY the retrieved content
+1. You ask: "What's the attendance policy?"
+2. MCP-RAG searches ChromaDB
+3. Returns top 5 most relevant chunks
+4. Claude answers using ONLY those chunks
 ```
 
-## Architecture
+---
 
+## Use Cases
+
+### 📚 Students
+```bash
+npm run cli add math "calculus-textbook.pdf"
+npm run cli add physics "lecture-notes.docx"
 ```
-Claude Desktop
-    ↕ MCP Protocol (stdio)
-MCP-RAG Server (Node.js)
-    ↕ HTTP (localhost:8000)
-ChromaDB Server (Python)
-    ↕ Local Storage
-Vector Database (chroma_db/)
+→ "Explain the concept of derivatives from my math collection"
+
+### 🏢 Professionals
+```bash
+npm run cli add company "employee-handbook.pdf"
+npm run cli add project "requirements.docx"
+```
+→ "What's our vacation policy?"
+
+### 🔬 Researchers
+```bash
+npm run cli add literature "papers/*.pdf"
+npm run cli add notes "research-notes.md"
+```
+→ "Summarize the methodology from the literature collection"
+
+---
+
+## Features
+
+- ✅ **Multi-collection support** - Organize by topic
+- ✅ **Semantic search** - ChromaDB vector embeddings
+- ✅ **Source attribution** - See which document/chunk
+- ✅ **Relevance scoring** - Know how confident the match is
+- ✅ **Multiple file formats** - PDF, DOCX, PPTX, XLSX, HWP, TXT, MD
+- ✅ **100% local** - No cloud, all on your machine
+- ✅ **0% hallucination** - Only document-based answers
+
+---
+
+## Comparison
+
+| Feature | NotebookLM | MCP-RAG |
+|---------|-----------|---------|
+| Platform | Google Cloud | Local |
+| AI Model | Gemini | Claude |
+| Privacy | Cloud | 100% Local |
+| Multi-collection | ❌ | ✅ |
+| CLI | ❌ | ✅ |
+| Cost | Free (limited) | Free (unlimited) |
+
+---
+
+## Troubleshooting
+
+### ChromaDB Connection Error
+
+**Problem:** `Cannot connect to ChromaDB`
+
+**Solution:**
+```bash
+chroma run --host localhost --port 8000
 ```
 
-Everything runs locally on your computer!
+Keep this terminal open!
 
-## Advanced Usage
+### Claude Desktop: MCP Server Not Showing
 
-### Environment Variables
+1. Check `claude_desktop_config.json` syntax
+2. Use absolute path (not relative)
+3. Restart Claude Desktop completely
+4. Check ChromaDB is running
+
+### No Search Results
 
 ```bash
-# Custom ChromaDB URL
-export CHROMA_URL=http://localhost:9000
+# Verify documents are indexed
+npm run cli list
+npm run cli info <collection>
 
-# Then start the server
-npm start
+# Re-index if needed
+npm run cli add <collection> <file>
 ```
 
-### Chunk Size Optimization
+---
+
+## Advanced
+
+### Batch Add Files
+
+**PowerShell:**
+```powershell
+Get-ChildItem "C:\docs\*.pdf" | ForEach-Object {
+    npm run cli add MyCollection $_.FullName
+}
+```
+
+**Bash:**
+```bash
+for f in /path/to/docs/*.pdf; do
+    npm run cli add MyCollection "$f"
+done
+```
+
+### Custom Chunk Size
 
 Edit `src/indexer.js`:
-
 ```javascript
-const CHUNK_SIZE = 500;      // Increase for more context
-const CHUNK_OVERLAP = 50;    // Increase for better continuity
+const CHUNK_SIZE = 500;      // Tokens per chunk
+const CHUNK_OVERLAP = 50;    // Overlap between chunks
 ```
 
-Re-index documents after changing:
-```bash
-npm run cli add collection document.pdf
-```
+Larger chunks = more context, fewer chunks
+Smaller chunks = more precise, more chunks
 
-### Multiple Document Formats
-
-Supported formats:
-- `.pdf` - PDF documents
-- `.txt` - Plain text
-- `.md` - Markdown files
+---
 
 ## Project Structure
 
@@ -311,132 +328,48 @@ mcp-rag/
 ├── src/
 │   ├── index.js       # MCP server
 │   ├── cli.js         # CLI tool
-│   └── indexer.js     # Document indexing
-├── chroma_db/         # ChromaDB storage (auto-created)
+│   └── indexer.js     # Document processing
+├── chroma/            # ChromaDB data (auto-created)
 ├── package.json
-├── install.bat        # Windows installer
-└── README.md
+├── README.md
+├── QUICK_START.md
+└── HOW_TO_USE.md
 ```
 
-## Troubleshooting
+---
 
-### ChromaDB Connection Error
+## Requirements
 
-**Problem:**
-```
-❌ ChromaDB connection failed
-```
+- **Node.js** 18+
+- **Python** 3.8+ (for ChromaDB)
+- **Claude Desktop** (latest version)
 
-**Solution:**
-```bash
-# Start ChromaDB server in a separate terminal
-chroma run --host localhost --port 8000
-```
-
-### No Results Found
-
-**Problem:** Search returns no results
-
-**Solutions:**
-1. Check if documents are indexed:
-   ```bash
-   npm run cli list
-   npm run cli info <collection>
-   ```
-
-2. Try broader search terms
-
-3. Re-index with different chunk size (see Advanced Usage)
-
-### MCP Server Not Showing in Claude Desktop
-
-**Solutions:**
-
-1. Check `claude_desktop_config.json` syntax (valid JSON)
-2. Verify file path is correct and uses double backslashes (Windows)
-3. Completely quit Claude Desktop (check system tray)
-4. Ensure ChromaDB is running
-5. Restart Claude Desktop
-
-### "Collection Not Found" Error
-
-**Problem:**
-```
-❌ Error: Collection not found
-```
-
-**Solution:**
-```bash
-# Create collection by adding a document
-npm run cli add <collection> <file>
-```
-
-## Comparison with NotebookLM
-
-| Feature | NotebookLM | MCP-RAG |
-|---------|-----------|---------|
-| **Platform** | Google Cloud | Local |
-| **AI Model** | Gemini | Claude |
-| **Data Privacy** | Cloud storage | 100% local |
-| **Multi-Collection** | No | Yes |
-| **CLI Management** | No | Yes |
-| **Cost** | Free (limited) | Free (unlimited) |
-| **Integration** | Web only | Claude Desktop |
-
-## Why MCP-RAG?
-
-1. **Privacy**: All data stays local - no cloud upload
-2. **Flexibility**: Multiple collections for different topics
-3. **Claude Integration**: Best-in-class AI with your documents
-4. **Developer-Friendly**: CLI tools, extensible architecture
-5. **Free & Open**: No API costs, run unlimited queries
-
-## Use Cases
-
-### 📚 Students
-- Index course materials, textbooks
-- Ask questions about study materials
-- Organize notes by subject
-
-### 🏢 Professionals
-- Company handbooks and policies
-- Project documentation
-- Meeting notes and reports
-
-### 🔬 Researchers
-- Academic papers
-- Research notes
-- Literature reviews
-
-### ⚖️ Legal/Compliance
-- Regulations and laws
-- Contract templates
-- Compliance documents
-
-## Roadmap
-
-- [ ] Support for DOCX files
-- [ ] Web interface
-- [ ] Multiple embedding models
-- [ ] Export conversations
-- [ ] Batch document import
-- [ ] Cross-collection search optimization
+---
 
 ## Contributing
 
 Contributions welcome! This is a universal tool that can benefit many users.
 
+---
+
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE)
+
+---
 
 ## Credits
 
 Built with:
-- [Model Context Protocol](https://github.com/anthropics/anthropic-sdk-typescript) - Anthropic
+- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) - Anthropic
 - [ChromaDB](https://www.trychroma.com/) - Vector database
-- [pdf-parse](https://www.npmjs.com/package/pdf-parse) - PDF text extraction
+- [pdf-parse](https://www.npmjs.com/package/pdf-parse) - PDF extraction
+- [mammoth](https://www.npmjs.com/package/mammoth) - DOCX extraction
+- [officeparser](https://www.npmjs.com/package/officeparser) - PPTX extraction
+- [xlsx](https://www.npmjs.com/package/xlsx) - Excel extraction
+- [node-hwp](https://www.npmjs.com/package/node-hwp) - 한글 extraction
 
 ---
 
 **MCP-RAG** - Your documents, Claude's intelligence, zero hallucination.
+

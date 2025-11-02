@@ -1,24 +1,11 @@
-# Quick Start Guide - MCP-RAG
+# Quick Start - MCP-RAG
 
 Get started in 5 minutes!
 
-## Prerequisites
+## Step 1: Install (1 minute)
 
-- Node.js 18+ installed
-- Python 3.8+ installed
-
-## Installation Steps
-
-### 1️⃣ Install (1 minute)
-
-**Windows:**
 ```bash
-cd mcp-rag
-install.bat
-```
-
-**macOS/Linux:**
-```bash
+git clone https://github.com/seanshin0214/mcp-rag.git
 cd mcp-rag
 npm install
 pip install chromadb
@@ -26,32 +13,40 @@ pip install chromadb
 
 ---
 
-### 2️⃣ Start ChromaDB (30 seconds)
+## Step 2: Start ChromaDB (30 seconds)
 
-Open a **new terminal** and run:
+**Open a new terminal and keep it running:**
 
 ```bash
 chroma run --host localhost --port 8000
 ```
 
-**Keep this terminal open!** ChromaDB must stay running.
+✅ You should see:
+```
+Connect to Chroma at: http://localhost:8000
+Listening on localhost:8000
+```
+
+⚠️ **Leave this terminal open!**
 
 ---
 
-### 3️⃣ Add Your First Document (1 minute)
+## Step 3: Add Your First Document (1 minute)
 
 ```bash
-# Example: Add school regulations
-npm run cli add school regulations.pdf
+cd mcp-rag
 
-# Example: Add research paper
-npm run cli add research "my-paper.pdf"
-
-# Example: Add work manual
-npm run cli add work handbook.pdf
+# Add a document
+npm run cli add school "path/to/document.pdf"
 ```
 
-You should see:
+**Example:**
+```bash
+npm run cli add school "C:\Documents\regulations.pdf"
+npm run cli add research "~/papers/study.docx"
+```
+
+✅ You should see:
 ```
 ✅ Success!
    Collection: school
@@ -62,9 +57,9 @@ You should see:
 
 ---
 
-### 4️⃣ Configure Claude Desktop (2 minutes)
+## Step 4: Configure Claude Desktop (2 minutes)
 
-#### Windows
+### Windows
 
 1. Open: `%APPDATA%\Claude\claude_desktop_config.json`
 2. Add:
@@ -74,17 +69,15 @@ You should see:
   "mcpServers": {
     "mcp-rag": {
       "command": "node",
-      "args": [
-        "C:\\Users\\sshin\\Documents\\mcp-rag\\src\\index.js"
-      ]
+      "args": ["C:\\Users\\YourName\\mcp-rag\\src\\index.js"]
     }
   }
 }
 ```
 
-**⚠️ Update the path to match your installation location!**
+**⚠️ Change `C:\\Users\\YourName\\mcp-rag` to your actual path!**
 
-#### macOS
+### macOS/Linux
 
 1. Open: `~/Library/Application Support/Claude/claude_desktop_config.json`
 2. Add:
@@ -94,9 +87,7 @@ You should see:
   "mcpServers": {
     "mcp-rag": {
       "command": "node",
-      "args": [
-        "/Users/yourusername/mcp-rag/src/index.js"
-      ]
+      "args": ["/Users/yourname/mcp-rag/src/index.js"]
     }
   }
 }
@@ -104,78 +95,99 @@ You should see:
 
 ---
 
-### 5️⃣ Start Using! (30 seconds)
+## Step 5: Restart Claude Desktop (30 seconds)
 
 1. **Quit Claude Desktop completely**
-2. **Verify ChromaDB is running** (terminal from step 2)
-3. **Restart Claude Desktop**
-4. **Ask questions!**
+2. **Check ChromaDB is still running** (from Step 2)
+3. **Start Claude Desktop again**
 
-Example questions in Claude Desktop:
+---
 
-```
-"Search in the school collection for attendance policy"
-```
+## Step 6: Test It! (30 seconds)
 
-```
-"What does my research collection say about methodology?"
-```
+In Claude Desktop, ask:
 
 ```
-"List all my collections"
+"Show me my collections"
+```
+
+You should see:
+```
+📚 Available Collections (1):
+
+📁 **school**
+   - Chunks: 127
+```
+
+Then ask:
+```
+"What does the school collection say about [your topic]?"
 ```
 
 ---
 
-## Quick Commands Reference
+## That's It! 🎉
+
+You now have your personal NotebookLM!
+
+---
+
+## What's Next?
+
+### Add More Documents
 
 ```bash
-# Add document
-npm run cli add <collection> <file>
+# Add multiple documents to same collection
+npm run cli add school "student-guide.pdf"
+npm run cli add school "syllabus.docx"
 
-# List collections
-npm run cli list
+# Create different collections
+npm run cli add research "paper1.pdf"
+npm run cli add work "handbook.docx"
+```
 
-# Get collection info
-npm run cli info <collection>
+### Bulk Add (PowerShell)
 
-# Search (test)
-npm run cli search <collection> "query"
+```powershell
+Get-ChildItem "C:\docs\*.pdf" | ForEach-Object {
+    npm run cli add MyCollection $_.FullName
+}
+```
 
-# Delete collection
-npm run cli delete <collection>
+### Check Your Collections
+
+```bash
+npm run cli list           # List all
+npm run cli info school    # Details
 ```
 
 ---
 
-## Checklist
+## Checklist Before Using
 
-Before using, verify:
-
-- [ ] ChromaDB running (`http://localhost:8000`)
-- [ ] At least one document indexed (`npm run cli list`)
-- [ ] Claude Desktop config updated
+- [ ] ChromaDB server running (`http://localhost:8000`)
+- [ ] At least one document added (`npm run cli list`)
+- [ ] Claude Desktop config updated with correct path
 - [ ] Claude Desktop restarted
 
 ---
 
 ## Common Issues
 
-### ChromaDB not connecting
+### "Cannot connect to ChromaDB"
 
 ```bash
-# Make sure it's running
+# Start ChromaDB server
 chroma run --host localhost --port 8000
 ```
 
-### MCP server not showing in Claude
+### "MCP server not showing in Claude"
 
 1. Check JSON syntax in config file
-2. Verify file path (double backslashes on Windows)
-3. Completely quit Claude Desktop
-4. Restart
+2. Use **absolute path** (not relative)
+3. Restart Claude Desktop **completely**
 
-### No search results
+### "No search results"
 
 ```bash
 # Verify documents are indexed
@@ -185,13 +197,43 @@ npm run cli info school
 
 ---
 
-## Next Steps
+## Quick Commands Reference
 
-- Read full [README.md](README.md) for advanced features
-- Add more documents to your collections
-- Try searching across multiple collections
-- Organize documents by topic
+```bash
+# Document Management (CLI)
+npm run cli add <collection> <file>    # Add document
+npm run cli list                       # List collections
+npm run cli info <collection>          # Collection details
+npm run cli delete <collection>        # Delete collection
+
+# In Claude Desktop (automatic)
+"Show me my collections"               # List
+"What's in the school collection?"     # Info
+"Search school for [topic]"            # Search
+```
 
 ---
 
-**You're ready!** Start asking Claude questions about your documents! 🎉
+## Supported File Formats
+
+- **Documents**: PDF, DOCX, HWP, TXT, MD
+- **Presentations**: PPTX
+- **Spreadsheets**: XLSX, XLS
+
+---
+
+## Architecture
+
+```
+CLI → ChromaDB → MCP Server → Claude Desktop
+ ↓                                ↓
+Add docs                      Ask questions
+```
+
+**Remember:**
+- **CLI** = Add/manage documents
+- **Claude Desktop** = Search/ask questions
+
+---
+
+For detailed documentation, see [README.md](README.md) or [HOW_TO_USE.md](HOW_TO_USE.md).
