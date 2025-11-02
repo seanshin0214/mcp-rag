@@ -12,7 +12,6 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ChromaClient } from 'chromadb';
-import { indexDocument } from './indexer.js';
 
 const CHROMA_URL = process.env.CHROMA_URL || 'http://localhost:8000';
 const DEFAULT_TOP_K = 5;
@@ -158,28 +157,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['collection'],
         },
       },
-      {
-        name: 'add_document',
-        description: 'Add a document to a collection. Supports PDF, DOCX, PPTX, XLSX, HWP, TXT, MD files. The file must exist on the local filesystem.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            collection: {
-              type: 'string',
-              description: 'Collection name (will be created if it does not exist)',
-            },
-            file_path: {
-              type: 'string',
-              description: 'Absolute path to the document file',
-            },
-            description: {
-              type: 'string',
-              description: 'Optional description for the collection',
-            },
-          },
-          required: ['collection', 'file_path'],
-        },
-      },
     ],
   };
 });
@@ -321,43 +298,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           },
         ],
       };
-    }
-    else if (name === 'add_document') {
-      const collectionName = args.collection;
-      const filePath = args.file_path;
-      const description = args.description;
-
-      try {
-        const result = await indexDocument(chromaClient, collectionName, filePath, {
-          description: description
-        });
-
-        let responseText = `✅ Document added successfully!\n\n`;
-        responseText += `**Collection:** ${result.collectionName}\n`;
-        responseText += `**File:** ${result.fileName}\n`;
-        responseText += `**Pages/Sheets:** ${result.numPages}\n`;
-        responseText += `**Chunks created:** ${result.numChunks}\n\n`;
-        responseText += `You can now search this document using the search_documents tool.`;
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: responseText,
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `❌ Error adding document: ${error.message}\n\nMake sure:\n- The file path is correct and absolute\n- The file format is supported (PDF, DOCX, PPTX, XLSX, HWP, TXT, MD)\n- ChromaDB server is running`,
-            },
-          ],
-          isError: true,
-        };
-      }
     }
     else {
       throw new Error(`Unknown tool: ${name}`);
