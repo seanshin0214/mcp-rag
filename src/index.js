@@ -222,41 +222,58 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       };
     }
     else if (name === 'list_collections') {
-      const collections = await chromaClient.listCollections();
+      try {
+        const collections = await chromaClient.listCollections();
 
-      if (collections.length === 0) {
+        if (collections.length === 0) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: '📭 No collections found.\n\nAdd documents using:\n  mcp-rag add <collection> <file>',
+              },
+            ],
+          };
+        }
+
+        let text = `📚 Available Collections (${collections.length}):\n\n`;
+
+        for (const col of collections) {
+          try {
+            const collection = await chromaClient.getCollection({ name: col.name });
+            const count = await collection.count();
+
+            text += `📁 **${col.name}**\n`;
+            text += `   - Chunks: ${count}\n`;
+            if (col.metadata?.description) {
+              text += `   - Description: ${col.metadata.description}\n`;
+            }
+            text += `\n`;
+          } catch (colError) {
+            console.error(`Error getting collection ${col.name}:`, colError);
+            text += `📁 **${col.name}** (error reading details)\n\n`;
+          }
+        }
+
         return {
           content: [
             {
               type: 'text',
-              text: '📭 No collections found.\n\nAdd documents using:\n  mcp-rag add <collection> <file>',
+              text: text,
             },
           ],
         };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Error listing collections: ${error.message}\n\nMake sure ChromaDB server is running:\n  chroma run --host localhost --port 8000`,
+            },
+          ],
+          isError: true,
+        };
       }
-
-      let text = `📚 Available Collections (${collections.length}):\n\n`;
-
-      for (const col of collections) {
-        const collection = await chromaClient.getCollection({ name: col.name });
-        const count = await collection.count();
-
-        text += `📁 **${col.name}**\n`;
-        text += `   - Chunks: ${count}\n`;
-        if (col.metadata?.description) {
-          text += `   - Description: ${col.metadata.description}\n`;
-        }
-        text += `\n`;
-      }
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: text,
-          },
-        ],
-      };
     }
     else if (name === 'get_collection_info') {
       const collectionName = args.collection;
