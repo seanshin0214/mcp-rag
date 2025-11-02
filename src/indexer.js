@@ -5,6 +5,10 @@
 import fs from 'fs';
 import path from 'path';
 import pdf from 'pdf-parse';
+import mammoth from 'mammoth';
+import officeParser from 'officeparser';
+import * as XLSX from 'xlsx';
+import hwp from 'node-hwp';
 import { encoding_for_model } from 'tiktoken';
 
 const CHUNK_SIZE = 500;
@@ -66,6 +70,76 @@ export async function extractTextFromTxt(txtPath) {
 }
 
 /**
+ * DOCX에서 텍스트 추출
+ */
+export async function extractTextFromDocx(docxPath) {
+  const result = await mammoth.extractRawText({ path: docxPath });
+
+  return {
+    text: result.value,
+    numPages: 1,
+    info: { Title: path.basename(docxPath) }
+  };
+}
+
+/**
+ * PPTX에서 텍스트 추출
+ */
+export async function extractTextFromPptx(pptxPath) {
+  return new Promise((resolve, reject) => {
+    officeParser.parseOffice(pptxPath, (data, err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({
+          text: data,
+          numPages: 1,
+          info: { Title: path.basename(pptxPath) }
+        });
+      }
+    });
+  });
+}
+
+/**
+ * Excel에서 텍스트 추출
+ */
+export async function extractTextFromExcel(excelPath) {
+  const workbook = XLSX.readFile(excelPath);
+  let allText = '';
+
+  workbook.SheetNames.forEach(sheetName => {
+    const sheet = workbook.Sheets[sheetName];
+    const sheetText = XLSX.utils.sheet_to_txt(sheet);
+    allText += `\n=== Sheet: ${sheetName} ===\n${sheetText}\n`;
+  });
+
+  return {
+    text: allText,
+    numPages: workbook.SheetNames.length,
+    info: { Title: path.basename(excelPath) }
+  };
+}
+
+/**
+ * 한글(HWP)에서 텍스트 추출
+ */
+export async function extractTextFromHwp(hwpPath) {
+  try {
+    const data = await hwp.open(hwpPath);
+    const text = data.getText();
+
+    return {
+      text: text,
+      numPages: 1,
+      info: { Title: path.basename(hwpPath) }
+    };
+  } catch (error) {
+    throw new Error(`HWP 파일 파싱 실패: ${error.message}`);
+  }
+}
+
+/**
  * 파일 형식에 따라 텍스트 추출
  */
 export async function extractText(filePath) {
@@ -75,8 +149,16 @@ export async function extractText(filePath) {
     return await extractTextFromPDF(filePath);
   } else if (ext === '.txt' || ext === '.md') {
     return await extractTextFromTxt(filePath);
+  } else if (ext === '.docx') {
+    return await extractTextFromDocx(filePath);
+  } else if (ext === '.pptx') {
+    return await extractTextFromPptx(filePath);
+  } else if (ext === '.xlsx' || ext === '.xls') {
+    return await extractTextFromExcel(filePath);
+  } else if (ext === '.hwp') {
+    return await extractTextFromHwp(filePath);
   } else {
-    throw new Error(`지원하지 않는 파일 형식: ${ext} (지원: .pdf, .txt, .md)`);
+    throw new Error(`지원하지 않는 파일 형식: ${ext}\n\n지원 형식:\n- 문서: PDF, DOCX, HWP, TXT, MD\n- 프레젠테이션: PPTX\n- 스프레드시트: XLSX, XLS`);
   }
 }
 
