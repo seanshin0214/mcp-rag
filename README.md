@@ -98,7 +98,22 @@ npm run cli add work "handbook.pptx"
 
 **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-Add this:
+**✨ Option 1: Auto-start ChromaDB (Recommended)**
+
+```json
+{
+  "mcpServers": {
+    "mcp-rag": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-rag/start-with-chroma.js"]
+    }
+  }
+}
+```
+
+This automatically starts ChromaDB before starting MCP-RAG!
+
+**Option 2: Manual ChromaDB start**
 
 ```json
 {
@@ -110,6 +125,8 @@ Add this:
   }
 }
 ```
+
+You need to manually run `chroma run --host localhost --port 8000` before starting.
 
 **Important:** Use your actual installation path!
 
